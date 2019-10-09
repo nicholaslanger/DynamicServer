@@ -1,10 +1,10 @@
 // Built-in Node.js modules
-var fs = require('fs')
-var path = require('path')
+var fs = require('fs');
+var path = require('path');
 
 // NPM modules
-var express = require('express')
-var sqlite3 = require('sqlite3')
+var express = require('express');
+var sqlite3 = require('sqlite3');
 
 
 var public_dir = path.join(__dirname, 'public');

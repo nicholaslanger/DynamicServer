@@ -3,23 +3,23 @@
     "version": "0.0.0",
     "description": "Dynamic Web Server using Node JS",
     "author": {
-        "name": "",
-        "email": ""
+        "name": "Nicholas Langer",
+        "email": "lang22002@stthomas.edu"
     },
     "contributors": [
         {
-            "name": "",
-            "email": ""
+            "name": "Nicholas Langer",
+            "email": "lang22002@stthomas.edu"
         },
         {
-            "name": "",
-            "email": ""
+            "name": "Riley Lipinski",
+            "email": "lipi8497@stthomas.edu"
         }
     ],
     "main": "server.js",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/nicholaslanger/Project2-DynamicServer.git"
     },
     "dependencies": {
         "express": "^4.17.1",
