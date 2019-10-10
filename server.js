@@ -26,15 +26,14 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 });
 
 function TestSQL(){
-    let sql = `SELECT States.state_name
-            FROM States
-            WHERE state_abbreviation = ?`;
+    let sql = `SELECT state_name
+            FROM States`;
 
     let sql2 = 'PRAGMA table_info(States)';
     //order by, where, from, select
 
     //use ? marks to subsitute parameters, security reasons
-    db.all(sql,'MN', (err, row) => {//get, all, each (npm sqlite3)
+    db.all(sql, (err, row) => {//get, all, each (npm sqlite3)
         if (err) {
             return console.error(err.message);
         }
