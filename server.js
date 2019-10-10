@@ -21,8 +21,10 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
     }
     else {
         console.log('Now connected to ' + db_filename);
+        TestSql();
     }
 });
+
 
 app.use(express.static(public_dir));
 
