@@ -21,11 +21,29 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
     }
     else {
         console.log('Now connected to ' + db_filename);
-        TestSql();
+        TestSQL();
     }
 });
 
+function TestSQL(){
+    let sql = `SELECT *
+            FROM Consumption
+            WHERE year <= 2000`;
 
+    let sql2 = 'PRAGMA table_info(States)';
+    //order by, where, from, select
+
+    //use ? marks to subsitute parameters, security reasons
+    db.all(sql, (err, row) => {//get, all, each (npm sqlite3)
+        if (err) {
+            return console.error(err.message);
+        }
+        for(i = 0; i < 10; i++) {
+            console.log(row[i]);
+        }
+    });
+}
+            
 app.use(express.static(public_dir));
 
 
