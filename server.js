@@ -21,9 +21,27 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
     }
     else {
         console.log('Now connected to ' + db_filename);
+        TestSQL();
     }
 });
 
+function TestSQL(){
+    let sql = `SELECT States.state_name
+            FROM States
+            WHERE state_abbreviation = ?`;
+
+    let sql2 = 'PRAGMA table_info(States)';
+    //order by, where, from, select
+
+    //use ? marks to subsitute parameters, security reasons
+    db.all(sql,'MN', (err, row) => {//get, all, each (npm sqlite3)
+        if (err) {
+            return console.error(err.message);
+        }
+        console.log(row);    
+    });
+}
+            
 app.use(express.static(public_dir));
 
 
