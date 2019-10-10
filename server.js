@@ -37,7 +37,9 @@ function TestSQL(){
         if (err) {
             return console.error(err.message);
         }
-        console.log(row);    
+        for(i = 0; i < 10; i++) {
+            console.log(row[i]);
+        }
     });
 }
             
