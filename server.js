@@ -26,9 +26,8 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
 });
 
 function TestSQL(){
-    let sql = `SELECT *
-            FROM Consumption
-            WHERE year <= 2000`;
+    let sql = `SELECT state_name
+            FROM States`;
 
     let sql2 = 'PRAGMA table_info(States)';
     //order by, where, from, select
