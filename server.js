@@ -71,6 +71,24 @@ app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
         // modify `response` here
+        
+        
+        
+        var state;
+        let sql = `SELECT state_abbreviation
+                    FROM states
+                    WHERE states.state_abbreviation = '` + req.params.selected_state + `';`;
+
+                
+        db.all(sql, (err, row) => {//get, all, each (npm sqlite3)
+            if (err) {
+                return console.error(err.message);
+            }
+            state = row[0].state_abbreviation;
+        });
+
+        response = response.replace("US Energy Consumption", state);
+
         WriteHtml(res, response);
     }).catch((err) => {
         Write404Error(res);
