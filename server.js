@@ -37,9 +37,9 @@ function TestSQL(){
         if (err) {
             return console.error(err.message);
         }
-        for(i = 0; i < 10; i++) {
-            console.log(row[i]);
-        }
+        // for(i = 0; i < 10; i++) {
+        //     console.log(row[i]);
+        // }
     });
 }
             
@@ -155,25 +155,51 @@ app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
         // modify `response` here
-        
-        
-        
-        var state;
-        let sql = `SELECT state_abbreviation
-                    FROM states
-                    WHERE states.state_abbreviation = '` + req.params.selected_state + `';`;
 
-                
-        db.all(sql, (err, row) => {//get, all, each (npm sqlite3)
-            if (err) {
-                return console.error(err.message);
+        response = response.replace("PAGE_TITLE", req.params.selected_state + " Energy Consumption" );
+        response = response.replace("PAGE_HEADER", req.params.selected_state + " Energy Consumption" );
+
+        let resources = new Promise((resolve, reject) =>{
+            db.all("SELECT * FROM Consumption WHERE state_abbreviation = '"+req.params.selected_state+"';", (err, row) => {//get, all, each (npm sqlite3)
+                if (err) {
+                    return console.error(err.message);
+                }
+                resolve(row);
+            });
+        }).then((result) => {
+
+            var table_data = "";
+
+            for (var key in result){
+                table_data = table_data + "<tr><td>"+result[key].year+"</td><td>"+result[key].coal+"</td><td>"+result[key].natural_gas+"</td><td>"+result[key].nuclear+"</td><td>"+result[key].petroleum+"</td><td>"+result[key].renewable+"</td><td>"+(result[key].coal+result[key].natural_gas+result[key].nuclear+result[key].petroleum+result[key].renewable)+"</td></tr>";
             }
-            state = row[0].state_abbreviation;
+
+            response = response.replace("DATA_TABLE", table_data);
+
+            var script_data = {"coal_counts":[], "natural_counts":[], "nuclear_counts":[], "petroleum_counts":[], "renewable_counts":[]};
+            for (var key in result){
+                script_data.coal_counts.push(result[key].coal);
+                script_data.natural_counts.push(result[key].natural_gas);
+                script_data.nuclear_counts.push(result[key].nuclear);
+                script_data.petroleum_counts.push(result[key].petroleum);
+                script_data.renewable_counts.push(result[key].renewable);
+            }
+            return script_data;
+        }).then((result) => {
+            //console.log(result["coal_counts"]);
+            response = response.replace("state;", "state="+req.params.selected_state+";");
+            response = response.replace("coal_counts;", "coal_counts=[" + result["coal_counts"]+"];");
+            response = response.replace("natural_counts;", "natural_counts=[" + result["natural_counts"]+"];");
+            response = response.replace("nuclear_counts;", "nuclear_counts=[" + result["nuclear_counts"]+"];");
+            response = response.replace("petroleum_counts;", "petroleum_counts=[" + result["petroleum_counts"]+"];");
+            response = response.replace("renewable_counts;", "renwable_counts=[" + result["renewable_counts"]+"];");
+
+            console.log(response);
+        }).then((result) => {
+            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/us.jpg" alt="No Image"');
+            WriteHtml(res, response);
         });
-
-        response = response.replace("US Energy Consumption", state);
-
-        WriteHtml(res, response);
+        
     }).catch((err) => {
         Write404Error(res);
     });
