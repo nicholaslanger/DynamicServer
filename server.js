@@ -91,7 +91,7 @@ app.get('/', (req, res) => {
 // GET request handler for '/year/*'
 app.get('/year/:selected_year', (req, res) => {
     if(parseInt(req.params.selected_year) > 2017 || parseInt(req.params.selected_year) < 1960) {
-        Write404Error(res); //need to figure out how to add the year to the error
+        Write404Error(res, "Error: no data for year " + req.params.selected_year);
     }
     else {
         let resources = new Promise((resolve, reject) =>{
@@ -127,6 +127,7 @@ app.get('/year/:selected_year', (req, res) => {
                 response = response.replace("petroleum_count;", "petroleum_count = " + data[3]);
                 response = response.replace("renewable_count;", "renewable_count = " + data[4]);
                 response = response.replace("DATA_INSERTED_HERE", data[5]);
+                response = response.replace("US_ENERGY_CONSUMPTION", req.params.selected_year + " US Energy Consumption");
                 response = response.replace("NATIONAL_SNAPSHOT", req.params.selected_year + " National Snapshot");
                 if(req.params.selected_year == 1960) {
                     response = response.replace("PREVIOUS_LINK", "/year/" + req.params.selected_year);
@@ -229,9 +230,15 @@ function ReadFile(filename) {
     });
 }
 
-function Write404Error(res) {
+function Write404Error(res) { 
     res.writeHead(404, {'Content-Type': 'text/plain'});
-    res.write('Error: file not found');
+    res.write('Error: File not found.');
+    res.end();
+}
+
+function Write404Error(res, msg) { //added msg param in order to change message of error, overloading other function
+    res.writeHead(404, {'Content-Type': 'text/plain'});
+    res.write(msg);
     res.end();
 }
 
