@@ -211,6 +211,9 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
     ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
         let response = template;
         // modify `response` here
+        response = response.replace("Consumption Snapshot", req.params.selected_energy_type + " consumption snapshot" );
+
+
         WriteHtml(res, response);
     }).catch((err) => {
         Write404Error(res);
