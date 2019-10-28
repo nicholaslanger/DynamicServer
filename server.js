@@ -37,9 +37,9 @@ function TestSQL(){
         if (err) {
             return console.error(err.message);
         }
-        for(i = 0; i < 10; i++) {
-            console.log(row[i]);
-        }
+        // for(i = 0; i < 10; i++) {
+        //     console.log(row[i]);
+        // }
     });
 }
             
@@ -156,7 +156,47 @@ app.get('/state/:selected_state', (req, res) => {
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
         // modify `response` here
-        WriteHtml(res, response);
+
+        response = response.replace("PAGE_TITLE", req.params.selected_state + " Energy Consumption" );
+        response = response.replace("PAGE_HEADER", req.params.selected_state + " Energy Consumption" );
+
+        let resources = new Promise((resolve, reject) =>{
+            db.all("SELECT * FROM Consumption WHERE state_abbreviation = '"+req.params.selected_state+"';", (err, row) => {//get, all, each (npm sqlite3)
+                if (err) {
+                    return console.error(err.message);
+                }
+                resolve(row);
+            });
+        }).then((result) => {
+
+            var table_data = "";
+
+            for (var key in result){
+                table_data = table_data + "<tr><td>"+result[key].year+"</td><td>"+result[key].coal+"</td><td>"+result[key].natural_gas+"</td><td>"+result[key].nuclear+"</td><td>"+result[key].petroleum+"</td><td>"+result[key].renewable+"</td><td>"+(result[key].coal+result[key].natural_gas+result[key].nuclear+result[key].petroleum+result[key].renewable)+"</td></tr>";
+            }
+
+            response = response.replace("DATA_TABLE", table_data);
+
+            var script_data = {"coal_counts":[], "natural_counts":[], "nuclear_counts":[], "petroleum_counts":[], "renewable_counts":[]};
+            for (var key in result){
+                script_data.coal_counts.push(result[key].coal);
+                script_data.natural_counts.push(result[key].natural_gas);
+                script_data.nuclear_counts.push(result[key].nuclear);
+                script_data.petroleum_counts.push(result[key].petroleum);
+                script_data.renewable_counts.push(result[key].renewable);
+            }
+            //console.log(result["coal_counts"]);
+            response = response.replace("state;", "state="+req.params.selected_state+";");
+            response = response.replace("coal_counts;", "coal_counts=[" + script_data["coal_counts"]+"];");
+            response = response.replace("natural_counts;", "natural_counts=[" + script_data["natural_counts"]+"];");
+            response = response.replace("nuclear_counts;", "nuclear_counts=[" + script_data["nuclear_counts"]+"];");
+            response = response.replace("petroleum_counts;", "petroleum_counts=[" + script_data["petroleum_counts"]+"];");
+            response = response.replace("renewable_counts;", "renwable_counts=[" + script_data["renewable_counts"]+"];");
+
+            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/us.jpg" alt="No Image"');
+            WriteHtml(res, response);
+        });
+        
     }).catch((err) => {
         Write404Error(res);
     });
@@ -166,8 +206,47 @@ app.get('/state/:selected_state', (req, res) => {
 app.get('/energy-type/:selected_energy_type', (req, res) => {
     ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
         let response = template;
+        let energy_type = req.params.selected_energy_type;
         // modify `response` here
-        WriteHtml(res, response);
+        response = response.replace("Consumption Snapshot", req.params.selected_energy_type + " consumption snapshot" );
+        response = response.replace("var energy_type", "var energy_type='"+req.params.selected_energy_type+"'" );
+
+        //console.log(response);
+
+        //let resources = new Promise((resolve, reject) =>{
+        let resources = [];
+        var state = {AK:[], AL:[], AR:[], AZ:[], CA:[], CO:[], CT:[], DC:[], DE:[], FL:[], GA:[], HI:[], IA:[], ID:[], IL:[], IN:[], KS:[], KY:[], LA:[], MA:[], MD:[], ME:[], MI:[], MN:[], MO:[], MS:[], MT:[], NC:[], ND:[], NE:[], NH:[], NJ:[], NM:[], NV:[], NY:[], OH:[], OK:[], OR:[], PA:[], RI:[], SC:[], SD:[], TN:[], TX:[], UT:[], VA:[], VT:[], WA:[], WI:[], WV:[], WY:[]};
+        for (var key in state){
+            var year;
+            for (year = 1960; year < 2018; year++){
+                let p = new Promise((resolve, reject) =>{
+                    db.all("SELECT "+req.params.selected_energy_type+" FROM Consumption WHERE year="+year+ " AND state_abbreviation='"+key+"';", (err, row)=> {
+                        if(err) {
+                            reject(err);
+                        }
+                        //state[key].push(row[0][req.params.selected_energy_type]);
+                        resolve({count: row[0][req.params.selected_energy_type]});
+                    });
+                });
+                resources.push(p);
+            }
+        }
+        Promise.all(resources).then((results) => {
+            console.log(results);
+            for (var key in state){
+                for (i = 0; i < results.length; i++){
+                    if (results[i].state === key){
+                        state[key].push(results[i].count);
+                    }
+                }
+            }
+            WriteHtml(res, response);
+        });
+        //   resolve(state);
+        //}).then((result) => {
+        //    console.log(result);
+        //});
+        
     }).catch((err) => {
         Write404Error(res);
     });
