@@ -269,7 +269,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 }
             }
             response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
-            console.log(response);
 
             var table_data;
             var row_data;
@@ -287,6 +286,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
             }
 
             response = response.replace("<!-- Data to be inserted here -->", table_data);
+            console.log(response);
 
             WriteHtml(res, response);
         });
@@ -326,6 +326,5 @@ function WriteHtml(res, html) {
     res.write(html);
     res.end();
 }
-
 
 var server = app.listen(port);
