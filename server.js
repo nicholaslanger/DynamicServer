@@ -272,8 +272,9 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 
             var table_data;
             var row_data;
+            table_data = "";
 
-            for (i = 0; i < 57; i++){
+            for (i = 0; i < 58; i++){
                 let curYear = 1960+i;
                 let total = 0;
                 row_data = "<tr><td>"+ curYear +"</td>";
@@ -286,9 +287,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
             }
 
             response = response.replace("<!-- Data to be inserted here -->", table_data);
-            console.log(response);
+            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/' + req.params.selected_energy_type + '.png" alt="' + req.params.selected_energy_type + '"');
 
             WriteHtml(res, response);
+            console.log(response);
         });
         
     }).catch((err) => {
