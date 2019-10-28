@@ -244,28 +244,23 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
         response = response.replace("Consumption Snapshot", req.params.selected_energy_type + " consumption snapshot" );
         response = response.replace("var energy_type", "var energy_type='"+req.params.selected_energy_type+"'" );
 
-        //console.log(response);
-
-        //let resources = new Promise((resolve, reject) =>{
         let resources = [];
         var state = {AK:[], AL:[], AR:[], AZ:[], CA:[], CO:[], CT:[], DC:[], DE:[], FL:[], GA:[], HI:[], IA:[], ID:[], IL:[], IN:[], KS:[], KY:[], LA:[], MA:[], MD:[], ME:[], MI:[], MN:[], MO:[], MS:[], MT:[], NC:[], ND:[], NE:[], NH:[], NJ:[], NM:[], NV:[], NY:[], OH:[], OK:[], OR:[], PA:[], RI:[], SC:[], SD:[], TN:[], TX:[], UT:[], VA:[], VT:[], WA:[], WI:[], WV:[], WY:[]};
         for (var key in state){
             var year;
             for (year = 1960; year < 2018; year++){
                 let p = new Promise((resolve, reject) =>{
-                    db.all("SELECT "+req.params.selected_energy_type+" FROM Consumption WHERE year="+year+ " AND state_abbreviation='"+key+"';", (err, row)=> {
+                    db.all("SELECT "+req.params.selected_energy_type+",state_abbreviation FROM Consumption WHERE year="+year+ " AND state_abbreviation='"+key+"';", (err, row)=> {
                         if(err) {
                             reject(err);
                         }
-                        //state[key].push(row[0][req.params.selected_energy_type]);
-                        resolve({count: row[0][req.params.selected_energy_type]});
+                        resolve({state:row[0]["state_abbreviation"], count: row[0][req.params.selected_energy_type]});
                     });
                 });
                 resources.push(p);
             }
         }
         Promise.all(resources).then((results) => {
-            console.log(results);
             for (var key in state){
                 for (i = 0; i < results.length; i++){
                     if (results[i].state === key){
@@ -273,12 +268,28 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                     }
                 }
             }
+            response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
+            console.log(response);
+
+            var table_data;
+            var row_data;
+
+            for (i = 0; i < 57; i++){
+                let curYear = 1960+i;
+                let total = 0;
+                row_data = "<tr><td>"+ curYear +"</td>";
+                for (var key in state){
+                    row_data = row_data+"<td>"+ state[key][i] +"</td>"
+                    total = total + state[key][i]
+                }
+                row_data = row_data + "<td>"+ total +"</td></tr>"
+                table_data = table_data + row_data;
+            }
+
+            response = response.replace("<!-- Data to be inserted here -->", table_data);
+
             WriteHtml(res, response);
         });
-        //   resolve(state);
-        //}).then((result) => {
-        //    console.log(result);
-        //});
         
     }).catch((err) => {
         Write404Error(res);
