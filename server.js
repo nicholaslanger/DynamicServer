@@ -158,7 +158,6 @@ app.get('/state/:selected_state', (req, res) => {
         // modify `response` here
 
         response = response.replace("PAGE_TITLE", req.params.selected_state + " Energy Consumption" );
-        response = response.replace("PAGE_HEADER", req.params.selected_state + " Energy Consumption" );
 
         let resources = new Promise((resolve, reject) =>{
             db.all("SELECT * FROM Consumption WHERE state_abbreviation = '"+req.params.selected_state+"';", (err, row) => {//get, all, each (npm sqlite3)
@@ -168,33 +167,67 @@ app.get('/state/:selected_state', (req, res) => {
                 resolve(row);
             });
         }).then((result) => {
-
+            var state_array = new Promise((resolve, reject) => {
+                db.all("SELECT * From States ORDER BY state_abbreviation", (err, row) =>{
+                    if(err) {
+                        reject(err);
+                    }
+                    console.log(row);
+                    resolve(row);
+                });
+            });
             var table_data = "";
-
+            
             for (var key in result){
                 table_data = table_data + "<tr><td>"+result[key].year+"</td><td>"+result[key].coal+"</td><td>"+result[key].natural_gas+"</td><td>"+result[key].nuclear+"</td><td>"+result[key].petroleum+"</td><td>"+result[key].renewable+"</td><td>"+(result[key].coal+result[key].natural_gas+result[key].nuclear+result[key].petroleum+result[key].renewable)+"</td></tr>";
             }
 
             response = response.replace("DATA_TABLE", table_data);
 
-            var script_data = {"coal_counts":[], "natural_counts":[], "nuclear_counts":[], "petroleum_counts":[], "renewable_counts":[]};
+            var script_data = {"coal_counts":[], "natural_gas_counts":[], "nuclear_counts":[], "petroleum_counts":[], "renewable_counts":[]};
             for (var key in result){
                 script_data.coal_counts.push(result[key].coal);
-                script_data.natural_counts.push(result[key].natural_gas);
+                script_data.natural_gas_counts.push(result[key].natural_gas);
                 script_data.nuclear_counts.push(result[key].nuclear);
                 script_data.petroleum_counts.push(result[key].petroleum);
                 script_data.renewable_counts.push(result[key].renewable);
             }
             //console.log(result["coal_counts"]);
-            response = response.replace("state;", "state="+req.params.selected_state+";");
+            response = response.replace("state;", 'state="'+req.params.selected_state+'";');
             response = response.replace("coal_counts;", "coal_counts=[" + script_data["coal_counts"]+"];");
-            response = response.replace("natural_counts;", "natural_counts=[" + script_data["natural_counts"]+"];");
+            response = response.replace("natural_gas_counts;", "natural_gas_counts=[" + script_data["natural_gas_counts"]+"];");
             response = response.replace("nuclear_counts;", "nuclear_counts=[" + script_data["nuclear_counts"]+"];");
             response = response.replace("petroleum_counts;", "petroleum_counts=[" + script_data["petroleum_counts"]+"];");
-            response = response.replace("renewable_counts;", "renwable_counts=[" + script_data["renewable_counts"]+"];");
+            response = response.replace("renewable_counts;", "renewable_counts=[" + script_data["renewable_counts"]+"];");
 
-            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/us.jpg" alt="No Image"');
-            WriteHtml(res, response);
+            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/' + req.params.selected_state + '.png" alt="' + req.params.selected_state + '"');
+            state_array.then((data) => {
+                let number = 0;
+                while(number != data.length && req.params.selected_state != data[number].state_abbreviation) {
+                    number = number + 1;
+                }
+                response = response.replace("PAGE_HEADER", data[number].state_name);
+                if(req.params.selected_state == "WY") {
+                    response = response.replace("XX", "WV");
+                    response = response.replace("YY", "AK");
+                    response = response.replace("PREV_LINK", "/state/WV");
+                    response = response.replace("NEXT_LINK", "/state/AK");
+                }
+                else if(req.params.selected_state == "AK") {
+                    response = response.replace("XX", "WY");
+                    response = response.replace("YY", "AL");
+                    response = response.replace("PREV_LINK", "/state/WY");
+                    response = response.replace("NEXT_LINK", "/state/AL");
+                }
+                else {
+                    response = response.replace("XX", data[number - 1].state_abbreviation);
+                    response = response.replace("YY", data[number + 1].state_abbreviation);
+                    response = response.replace("PREV_LINK", "/state/" + data[number - 1].state_abbreviation);
+                    response = response.replace("NEXT_LINK", "/state/" + data[number + 1].state_abbreviation);
+                }
+                console.log(response);
+                WriteHtml(res, response);
+            });
         });
         
     }).catch((err) => {

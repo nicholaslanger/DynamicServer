@@ -13,7 +13,7 @@
         // `state` and arrays of consumption per year --> set these variables equal to appropriate value
         var state;
         var coal_counts;  // e.g. [1234, 2567, ...]
-        var natural_counts;
+        var natural_gas_counts;
         var nuclear_counts;
         var petroleum_counts;
         var renewable_counts;
@@ -22,12 +22,12 @@
 <body onload="Init()">
     <div id="wrapper">
         <div id="content">
-            <a href="/"><h1>PAGE_HEADER</h1></a>
+            <a href="/"><h1>US Energy Consumption</h1></a>
             
             <div class="spacer2"></div>
             
             <div id="view_select">
-                <h2>In Depth Analysis</h2>
+                <h2>PAGE_HEADER</h2>
                 <div class="spacer1"></div>
                 <label for="view_type">View by: </label>
                 <select id="view_type" onchange="SearchTypeChanged()">
@@ -48,8 +48,8 @@
                     <h2>Yearly Snapshot</h2> <!-- change header to include state (e.g. Minnesota Yearly Snaphot) -->
                 </div>
                 <div class="right">
-                    <a class="prev_next" href="">XX</a> <!-- change XX to prev state, link to WY if state is AK -->
-                    <a class="prev_next" href="">XX</a> <!-- change XX to next state, link to AK if state is WY -->
+                    <a class="prev_next" href="PREV_LINK">XX</a> <!-- change XX to prev state, link to WY if state is AK -->
+                    <a class="prev_next" href="NEXT_LINK">YY</a> <!-- change YY to next state, link to AK if state is WY -->
                 </div>
                 <div class="spacer1"></div>
                 <div class="left">
