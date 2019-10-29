@@ -241,7 +241,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
         let response = template;
         let energy_type = req.params.selected_energy_type;
         // modify `response` here
-        response = response.replace("Consumption Snapshot", req.params.selected_energy_type + " consumption snapshot" );
+        response = response.replace("Consumption Snapshot", energy_type.charAt(0).toUpperCase() + energy_type.substring(1).replace("_", " ") + " Consumption Snapshot" );
         response = response.replace("var energy_type", "var energy_type='"+req.params.selected_energy_type+"'" );
 
         let resources = [];
