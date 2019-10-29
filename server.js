@@ -21,23 +21,10 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
     }
     else {
         console.log('Now connected to ' + db_filename);
-        testSQL();
     }
 });
-
-function testSQL() {
-    let sql = "SELECT state_name FROM States WHERE state_abbreviation=?";
-    db.all(sql, ["MN"], (err, row) =>{
-        console.log(row);
-        if(row == undefined) {
-            //Write404Error(res, "woah");
-            console.log("big bad boi");
-        }
-    });
-}
-            
+       
 app.use(express.static(public_dir));
-
 
 // GET request handler for '/'
 app.get('/', (req, res) => {
@@ -303,7 +290,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
             }
             response = response.replace("YY", energy_array[(energy_number + 1)%5]);
             response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
-            //console.log(response);
             WriteHtml(res, response);
         });
         
