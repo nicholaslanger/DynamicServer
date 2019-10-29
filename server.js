@@ -21,25 +21,18 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
     }
     else {
         console.log('Now connected to ' + db_filename);
-        //TestSQL();
+        testSQL();
     }
 });
 
-function TestSQL(){
-    let sql = `SELECT state_name
-            FROM States`;
-
-    let sql2 = 'PRAGMA table_info(States)';
-    //order by, where, from, select
-
-    //use ? marks to subsitute parameters, security reasons
-    db.all("SELECT * FROM Consumption WHERE year=2017", (err, row) => {//get, all, each (npm sqlite3)
-        if (err) {
-            return console.error(err.message);
+function testSQL() {
+    let sql = "SELECT state_name FROM States WHERE state_abbreviation=?";
+    db.all(sql, ["MN"], (err, row) =>{
+        console.log(row);
+        if(row == undefined) {
+            //Write404Error(res, "woah");
+            console.log("big bad boi");
         }
-        // for(i = 0; i < 10; i++) {
-        //     console.log(row[i]);
-        // }
     });
 }
             
@@ -54,10 +47,8 @@ app.get('/', (req, res) => {
             if(err) {
                 reject(err);
             }
-            //console.log(row);
             var arraystring = "";
             for (var key in row) {
-                //console.log(key);
                 array[0] = array[0] + row[key].coal;
                 array[1] = array[1] + row[key].natural_gas;
                 array[2] = array[2] + row[key].nuclear;
@@ -73,14 +64,12 @@ app.get('/', (req, res) => {
         let response = template;
         // modify `response` here
         resources.then((data)=>{
-            //console.log(data);
             response = response.replace("coal_count;", "coal_count = " + data[0]);
             response = response.replace("natural_gas_count", "natural_gas_count = " + data[1]);
             response = response.replace("nuclear_count;", "nuclear_count = " + data[2]);
             response = response.replace("petroleum_count;", "petroleum_count = " + data[3]);
             response = response.replace("renewable_count;", "renewable_count = " + data[4]);
             response = response.replace("DATA_INSERTED_HERE", data[5]);
-            //console.log(response);
             WriteHtml(res, response);
         });
     }).catch((err) => {
@@ -100,10 +89,8 @@ app.get('/year/:selected_year', (req, res) => {
                 if(err) {
                     reject(err);
                 }
-                //console.log(row);
                 var arraystring = "";
                 for (var key in row) {
-                    //console.log(key);
                     array[0] = array[0] + row[key].coal;
                     array[1] = array[1] + row[key].natural_gas;
                     array[2] = array[2] + row[key].nuclear;
@@ -119,7 +106,6 @@ app.get('/year/:selected_year', (req, res) => {
             let response = template;
             // modify `response` here
             resources.then((data)=>{
-                //console.log(data);
                 response = response.replace("year;", "year = " + req.params.selected_year);
                 response = response.replace("coal_count;", "coal_count = " + data[0]);
                 response = response.replace("natural_gas_count", "natural_gas_count = " + data[1]);
@@ -141,7 +127,6 @@ app.get('/year/:selected_year', (req, res) => {
                     response = response.replace("PREVIOUS_LINK", "/year/" + (parseInt(req.params.selected_year) - 1));
                     response = response.replace("NEXT_LINK", "/year/" + (parseInt(req.params.selected_year) + 1));
                 }
-                //console.log(response);
                 WriteHtml(res, response);
             });
         }).catch((err) => {
@@ -153,6 +138,11 @@ app.get('/year/:selected_year', (req, res) => {
 
 // GET request handler for '/state/*'
 app.get('/state/:selected_state', (req, res) => {
+    db.all("SELECT * FROM States WHERE state_abbreviation=?",[req.params.selected_state], (err, row) =>{
+        if(row.length == 0) {
+            Write404Error(res, "Error: no data for state " + req.params.selected_state);
+        }
+    });
     ReadFile(path.join(template_dir, 'state.html')).then((template) => {
         let response = template;
         // modify `response` here
@@ -172,7 +162,6 @@ app.get('/state/:selected_state', (req, res) => {
                     if(err) {
                         reject(err);
                     }
-                    //console.log(row);
                     resolve(row);
                 });
             });
@@ -192,7 +181,6 @@ app.get('/state/:selected_state', (req, res) => {
                 script_data.petroleum_counts.push(result[key].petroleum);
                 script_data.renewable_counts.push(result[key].renewable);
             }
-            //console.log(result["coal_counts"]);
             response = response.replace("state;", 'state="'+req.params.selected_state+'";');
             response = response.replace("coal_counts;", "coal_counts=[" + script_data["coal_counts"]+"];");
             response = response.replace("natural_gas_counts;", "natural_gas_counts=[" + script_data["natural_gas_counts"]+"];");
@@ -225,7 +213,6 @@ app.get('/state/:selected_state', (req, res) => {
                     response = response.replace("PREV_LINK", "/state/" + data[number - 1].state_abbreviation);
                     response = response.replace("NEXT_LINK", "/state/" + data[number + 1].state_abbreviation);
                 }
-                //console.log(response);
                 WriteHtml(res, response);
             });
         });
@@ -237,6 +224,16 @@ app.get('/state/:selected_state', (req, res) => {
 
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
+    var button_array = ["coal", "natural_gas", "nuclear", "petroleum", "renewable"];
+    // let error = true;
+    // for(let i in button_array) {
+    //     if(req.params.selected_energy_type == i && error == true) {
+    //         error = false;
+    //     }
+    // }
+    // if(error){
+    //     Write404Error(res, "Error: no data for energy type " + req.params.selected_energy_type);
+    // }
     ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
         let response = template;
         let energy_type = req.params.selected_energy_type;
@@ -275,7 +272,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
             let energy_number = 0;
             var table_data = "";
             var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
-            var button_array = ["coal", "natural_gas", "nuclear", "petroleum", "renewable"];
             for (i = 0; i < 58; i++){
                 let curYear = 1960+i;
                 let total = 0;
@@ -287,7 +283,8 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 row_data = row_data + "<td>"+ total +"</td></tr>"
                 table_data = table_data + row_data;
             }
-            while(energy_number != energy_array.length && req.params.selected_energy_type != energy_array[energy_number]) {
+            while(energy_number != button_array.length && req.params.selected_energy_type != button_array[energy_number]) {
+                console.log(energy_array);
                 energy_number = energy_number + 1;
             }
             response = response.replace("<!-- Data to be inserted here -->", table_data);
@@ -295,13 +292,18 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
             if(energy_number == 0) {
                 response = response.replace("XX", energy_array[4]);
                 response = response.replace("PREV_LINK", "/energy-type/" + button_array[4]);
+                console.log("Hello1");
+                console.log(energy_number);
             }
             else {
                 response = response.replace("XX", energy_array[(energy_number - 1)]);
                 response = response.replace("PREV_LINK", "/energy-type/" + button_array[(energy_number - 1)]);
+                console.log("Hello2");
+                console.log(energy_number);
             }
             response = response.replace("YY", energy_array[(energy_number + 1)%5]);
             response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
+            //console.log(response);
             WriteHtml(res, response);
         });
         
