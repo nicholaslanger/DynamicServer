@@ -172,7 +172,7 @@ app.get('/state/:selected_state', (req, res) => {
                     if(err) {
                         reject(err);
                     }
-                    console.log(row);
+                    //console.log(row);
                     resolve(row);
                 });
             });
@@ -225,7 +225,7 @@ app.get('/state/:selected_state', (req, res) => {
                     response = response.replace("PREV_LINK", "/state/" + data[number - 1].state_abbreviation);
                     response = response.replace("NEXT_LINK", "/state/" + data[number + 1].state_abbreviation);
                 }
-                console.log(response);
+                //console.log(response);
                 WriteHtml(res, response);
             });
         });
@@ -241,7 +241,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
         let response = template;
         let energy_type = req.params.selected_energy_type;
         // modify `response` here
-        response = response.replace("Consumption Snapshot", req.params.selected_energy_type + " consumption snapshot" );
+        response = response.replace("Consumption Snapshot", energy_type.charAt(0).toUpperCase() + energy_type.substring(1).replace("_", " ") + " Consumption Snapshot" );
         response = response.replace("var energy_type", "var energy_type='"+req.params.selected_energy_type+"'" );
 
         let resources = [];
@@ -273,8 +273,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
 
             var table_data;
             var row_data;
+            let energy_number = 0;
             table_data = "";
-
+            var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
+            var button_array = ["coal", "natural_gas", "nuclear", "petroleum", "renewable"];
             for (i = 0; i < 58; i++){
                 let curYear = 1960+i;
                 let total = 0;
@@ -286,12 +288,22 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 row_data = row_data + "<td>"+ total +"</td></tr>"
                 table_data = table_data + row_data;
             }
-
+            while(energy_number != energy_array.length && req.params.selected_energy_type != energy_array[energy_number]) {
+                energy_number = energy_number + 1;
+            }
             response = response.replace("<!-- Data to be inserted here -->", table_data);
             response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/' + req.params.selected_energy_type + '.png" alt="' + req.params.selected_energy_type + '"');
-
+            if(energy_number == 0) {
+                response = response.replace("XX", energy_array[4]);
+                response = response.replace("PREV_LINK", "/energy-type/" + button_array[4]);
+            }
+            else {
+                response = response.replace("XX", energy_array[(energy_number - 1)]);
+                response = response.replace("PREV_LINK", "/energy-type/" + button_array[(energy_number - 1)]);
+            }
+            response = response.replace("YY", energy_array[(energy_number + 1)%5]);
+            response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
             WriteHtml(res, response);
-            console.log(response);
         });
         
     }).catch((err) => {
