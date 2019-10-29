@@ -172,7 +172,7 @@ app.get('/state/:selected_state', (req, res) => {
                     if(err) {
                         reject(err);
                     }
-                    console.log(row);
+                    //console.log(row);
                     resolve(row);
                 });
             });
@@ -225,7 +225,7 @@ app.get('/state/:selected_state', (req, res) => {
                     response = response.replace("PREV_LINK", "/state/" + data[number - 1].state_abbreviation);
                     response = response.replace("NEXT_LINK", "/state/" + data[number + 1].state_abbreviation);
                 }
-                console.log(response);
+                //console.log(response);
                 WriteHtml(res, response);
             });
         });
@@ -303,7 +303,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
             response = response.replace("YY", energy_array[(energy_number + 1)%5]);
             response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
             WriteHtml(res, response);
-            console.log(response);
         });
         
     }).catch((err) => {
