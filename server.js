@@ -225,92 +225,95 @@ app.get('/state/:selected_state', (req, res) => {
 // GET request handler for '/energy-type/*'
 app.get('/energy-type/:selected_energy_type', (req, res) => {
     var button_array = ["coal", "natural_gas", "nuclear", "petroleum", "renewable"];
-    // let error = true;
-    // for(let i in button_array) {
-    //     if(req.params.selected_energy_type == i && error == true) {
-    //         error = false;
-    //     }
-    // }
-    // if(error){
-    //     Write404Error(res, "Error: no data for energy type " + req.params.selected_energy_type);
-    // }
-    ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
-        let response = template;
-        let energy_type = req.params.selected_energy_type;
-        // modify `response` here
-        response = response.replace("Consumption Snapshot", energy_type.charAt(0).toUpperCase() + energy_type.substring(1).replace("_", " ") + " Consumption Snapshot" );
-        response = response.replace("var energy_type", "var energy_type='"+req.params.selected_energy_type+"'" );
-
-        let resources = [];
-        var state = {AK:[], AL:[], AR:[], AZ:[], CA:[], CO:[], CT:[], DC:[], DE:[], FL:[], GA:[], HI:[], IA:[], ID:[], IL:[], IN:[], KS:[], KY:[], LA:[], MA:[], MD:[], ME:[], MI:[], MN:[], MO:[], MS:[], MT:[], NC:[], ND:[], NE:[], NH:[], NJ:[], NM:[], NV:[], NY:[], OH:[], OK:[], OR:[], PA:[], RI:[], SC:[], SD:[], TN:[], TX:[], UT:[], VA:[], VT:[], WA:[], WI:[], WV:[], WY:[]};
-        for (var key in state){
-            var year;
-            for (year = 1960; year < 2018; year++){
-                let p = new Promise((resolve, reject) =>{
-                    db.all("SELECT "+req.params.selected_energy_type+",state_abbreviation FROM Consumption WHERE year="+year+ " AND state_abbreviation='"+key+"';", (err, row)=> {
-                        if(err) {
-                            reject(err);
-                            
-                        }
-                        resolve({state:row[0]["state_abbreviation"], count: row[0][req.params.selected_energy_type]});
-                    });
-                });
-                resources.push(p);
-            }
+    let error = true;
+    for(let i in button_array) {
+        if(req.params.selected_energy_type == button_array[i] && error == true) {
+            error = false;
         }
-        Promise.all(resources).then((results) => {
+    }
+    if(error){
+        Write404Error(res, "Error: no data for energy type " + req.params.selected_energy_type);
+    }
+    else {
+        ReadFile(path.join(template_dir, 'energy.html')).then((template) => {
+            let response = template;
+            let energy_type = req.params.selected_energy_type;
+            // modify `response` here
+            response = response.replace("Consumption Snapshot", energy_type.charAt(0).toUpperCase() + energy_type.substring(1).replace("_", " ") + " Consumption Snapshot" );
+            response = response.replace("var energy_type", "var energy_type='"+req.params.selected_energy_type+"'" );
+
+            let resources = [];
+            var state = {AK:[], AL:[], AR:[], AZ:[], CA:[], CO:[], CT:[], DC:[], DE:[], FL:[], GA:[], HI:[], IA:[], ID:[], IL:[], IN:[], KS:[], KY:[], LA:[], MA:[], MD:[], ME:[], MI:[], MN:[], MO:[], MS:[], MT:[], NC:[], ND:[], NE:[], NH:[], NJ:[], NM:[], NV:[], NY:[], OH:[], OK:[], OR:[], PA:[], RI:[], SC:[], SD:[], TN:[], TX:[], UT:[], VA:[], VT:[], WA:[], WI:[], WV:[], WY:[]};
             for (var key in state){
-                for (i = 0; i < results.length; i++){
-                    if (results[i].state === key){
-                        state[key].push(results[i].count);
+                var year;
+                for (year = 1960; year < 2018; year++){
+                    let p = new Promise((resolve, reject) =>{
+                        db.all("SELECT "+req.params.selected_energy_type+",state_abbreviation FROM Consumption WHERE year="+year+ " AND state_abbreviation='"+key+"';", (err, row)=> {
+                            if(err) {
+                                reject(err);
+                                
+                            }
+                            resolve({state:row[0]["state_abbreviation"], count: row[0][req.params.selected_energy_type]});
+                        });
+                    });
+                    resources.push(p);
+                }
+            }
+            Promise.all(resources).then((results) => {
+                for (var key in state){
+                    for (i = 0; i < results.length; i++){
+                        if (results[i].state === key){
+                            state[key].push(results[i].count);
+                        }
                     }
                 }
-            }
-            response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
+                response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
 
-            var table_data;
-            var row_data;
-            let energy_number = 0;
-            table_data = "";
-            var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
-            for (i = 0; i < 58; i++){
-                let curYear = 1960+i;
-                let total = 0;
-                row_data = "<tr><td>"+ curYear +"</td>";
-                for (var key in state){
-                    row_data = row_data+"<td>"+ state[key][i] +"</td>"
-                    total = total + state[key][i]
+                var table_data;
+                var row_data;
+                let energy_number = 0;
+                table_data = "";
+                var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
+                for (i = 0; i < 58; i++){
+                    let curYear = 1960+i;
+                    let total = 0;
+                    row_data = "<tr><td>"+ curYear +"</td>";
+                    for (var key in state){
+                        row_data = row_data+"<td>"+ state[key][i] +"</td>"
+                        total = total + state[key][i]
+                    }
+                    row_data = row_data + "<td>"+ total +"</td></tr>"
+                    table_data = table_data + row_data;
                 }
-                row_data = row_data + "<td>"+ total +"</td></tr>"
-                table_data = table_data + row_data;
-            }
-            while(energy_number != button_array.length && req.params.selected_energy_type != button_array[energy_number]) {
-                console.log(energy_array);
-                energy_number = energy_number + 1;
-            }
-            response = response.replace("<!-- Data to be inserted here -->", table_data);
-            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/' + req.params.selected_energy_type + '.png" alt="' + req.params.selected_energy_type + '"');
-            if(energy_number == 0) {
-                response = response.replace("XX", energy_array[4]);
-                response = response.replace("PREV_LINK", "/energy-type/" + button_array[4]);
-                console.log("Hello1");
-                console.log(energy_number);
-            }
-            else {
-                response = response.replace("XX", energy_array[(energy_number - 1)]);
-                response = response.replace("PREV_LINK", "/energy-type/" + button_array[(energy_number - 1)]);
-                console.log("Hello2");
-                console.log(energy_number);
-            }
-            response = response.replace("YY", energy_array[(energy_number + 1)%5]);
-            response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
-            //console.log(response);
-            WriteHtml(res, response);
-        });
-        
+                while(energy_number != button_array.length && req.params.selected_energy_type != button_array[energy_number]) {
+                    console.log(energy_array);
+                    energy_number = energy_number + 1;
+                }
+                response = response.replace("<!-- Data to be inserted here -->", table_data);
+                response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/' + req.params.selected_energy_type + '.png" alt="' + req.params.selected_energy_type + '"');
+                if(energy_number == 0) {
+                    response = response.replace("XX", energy_array[4]);
+                    response = response.replace("PREV_LINK", "/energy-type/" + button_array[4]);
+                    console.log("Hello1");
+                    console.log(energy_number);
+                }
+                else {
+                    response = response.replace("XX", energy_array[(energy_number - 1)]);
+                    response = response.replace("PREV_LINK", "/energy-type/" + button_array[(energy_number - 1)]);
+                    console.log("Hello2");
+                    console.log(energy_number);
+                }
+                response = response.replace("YY", energy_array[(energy_number + 1)%5]);
+                response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
+                //console.log(response);
+                WriteHtml(res, response);
+            });
+            
     }).catch((err) => {
         Write404Error(res);
     });
+    }
+
 });
 
 function ReadFile(filename) {
