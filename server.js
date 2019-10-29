@@ -267,20 +267,23 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                         }
                     }
                 }
-            }
-            response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
-            
-            var row_data;
-            let energy_number = 0;
-            var table_data = "";
-            var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
-            for (i = 0; i < 58; i++){
-                let curYear = 1960+i;
-                let total = 0;
-                row_data = "<tr><td>"+ curYear +"</td>";
-                for (var key in state){
-                    row_data = row_data+"<td>"+ state[key][i] +"</td>"
-                    total = total + state[key][i]
+                response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
+
+                var table_data;
+                var row_data;
+                let energy_number = 0;
+                table_data = "";
+                var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
+                for (i = 0; i < 58; i++){
+                    let curYear = 1960+i;
+                    let total = 0;
+                    row_data = "<tr><td>"+ curYear +"</td>";
+                    for (var key in state){
+                        row_data = row_data+"<td>"+ state[key][i] +"</td>"
+                        total = total + state[key][i]
+                    }
+                    row_data = row_data + "<td>"+ total +"</td></tr>"
+                    table_data = table_data + row_data;
                 }
                 while(energy_number != button_array.length && req.params.selected_energy_type != button_array[energy_number]) {
                     console.log(energy_array);
