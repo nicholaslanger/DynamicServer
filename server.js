@@ -269,34 +269,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                     row_data = row_data+"<td>"+ state[key][i] +"</td>"
                     total = total + state[key][i]
                 }
-<<<<<<< HEAD
-                row_data = row_data + "<td>"+ total +"</td></tr>"
-                table_data = table_data + row_data;
-            }
-            while(energy_number != button_array.length && req.params.selected_energy_type != button_array[energy_number]) {
-                console.log(energy_array);
-                energy_number = energy_number + 1;
-            }
-            response = response.replace("<!-- Data to be inserted here -->", table_data);
-            response = response.replace('src="/images/noimage.jpg" alt="No Image"', 'src="/images/' + req.params.selected_energy_type + '.png" alt="' + req.params.selected_energy_type + '"');
-            if(energy_number == 0) {
-                response = response.replace("XX", energy_array[4]);
-                response = response.replace("PREV_LINK", "/energy-type/" + button_array[4]);
-                console.log("Hello1");
-                console.log(energy_number);
-            }
-            else {
-                response = response.replace("XX", energy_array[(energy_number - 1)]);
-                response = response.replace("PREV_LINK", "/energy-type/" + button_array[(energy_number - 1)]);
-                console.log("Hello2");
-                console.log(energy_number);
-            }
-            response = response.replace("YY", energy_array[(energy_number + 1)%5]);
-            response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
-            WriteHtml(res, response);
-        });
-        
-=======
                 while(energy_number != button_array.length && req.params.selected_energy_type != button_array[energy_number]) {
                     console.log(energy_array);
                     energy_number = energy_number + 1;
@@ -321,7 +293,6 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 WriteHtml(res, response);
             });
             
->>>>>>> bb36843dacc6a8a3f1ba21532a59725ff5e38882
     }).catch((err) => {
         Write404Error(res);
     });
