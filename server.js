@@ -270,11 +270,10 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 }
             }
             response = response.replace("var energy_counts", "var energy_counts= " + JSON.stringify(state));
-
-            var table_data;
+            
             var row_data;
             let energy_number = 0;
-            table_data = "";
+            var table_data = "";
             var energy_array = ["Coal", "Natural Gas", "Nuclear", "Petroleum", "Renewable"];
             var button_array = ["coal", "natural_gas", "nuclear", "petroleum", "renewable"];
             for (i = 0; i < 58; i++){
