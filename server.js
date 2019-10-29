@@ -250,6 +250,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                     db.all("SELECT "+req.params.selected_energy_type+",state_abbreviation FROM Consumption WHERE year="+year+ " AND state_abbreviation='"+key+"';", (err, row)=> {
                         if(err) {
                             reject(err);
+                            
                         }
                         resolve({state:row[0]["state_abbreviation"], count: row[0][req.params.selected_energy_type]});
                     });
