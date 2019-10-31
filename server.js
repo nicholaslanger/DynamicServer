@@ -182,7 +182,7 @@ app.get('/state/:selected_state', (req, res) => {
                         while(number != data.length && req.params.selected_state != data[number].state_abbreviation) {
                             number = number + 1;
                         }
-                        response = response.replace("PAGE_HEADER", data[number].state_name);
+                        response = response.replace("PAGE_HEADER", data[number].state_name + " Yearly Snapshot");
                         if(req.params.selected_state == "WY") {
                             response = response.replace("XX", "WV");
                             response = response.replace("YY", "AK");
@@ -291,6 +291,7 @@ app.get('/energy-type/:selected_energy_type', (req, res) => {
                 }
                 response = response.replace("YY", energy_array[(energy_number + 1)%5]);
                 response = response.replace("NEXT_LINK", "/energy-type/" + button_array[(energy_number + 1)%5]);
+                response = response.replace("US_ENERGY_CONSUMPTION", energy_array[energy_number] + " Energy Consumption");
                 WriteHtml(res, response);
             });
             
