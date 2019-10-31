@@ -26,7 +26,6 @@ var db = new sqlite3.Database(db_filename, sqlite3.OPEN_READONLY, (err) => {
      
 app.use(express.static(public_dir));
 
-
 // GET request handler for '/'
 app.get('/', (req, res) => {
     let resources = new Promise((resolve, reject) =>{
